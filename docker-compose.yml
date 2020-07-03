@@ -13,7 +13,7 @@ x-sentry-defaults: &sentry_defaults
     - redis
     - postgres
     - memcached
-    - smtp
+    # - smtp
     - snuba-api
     - snuba-consumer
     - snuba-outcomes-consumer
@@ -42,12 +42,12 @@ x-snuba-defaults: &snuba_defaults
     UWSGI_MAX_REQUESTS: '10000'
     UWSGI_DISABLE_LOGGING: 'true'
 services:
-  smtp:
-    << : *restart_policy
-    image: tianon/exim4
-    volumes:
-      - 'sentry-smtp:/var/spool/exim4'
-      - 'sentry-smtp-log:/var/log/exim4'
+  # smtp:
+  #   << : *restart_policy
+  #   image: tianon/exim4
+  #   volumes:
+  #     - 'sentry-smtp:/var/spool/exim4'
+  #     - 'sentry-smtp-log:/var/log/exim4'
   memcached:
     << : *restart_policy
     image: 'memcached:1.5-alpine'
@@ -162,14 +162,22 @@ services:
     << : *sentry_defaults
     # Increase `--commit-batch-size 1` below to deal with high-load environments.
     command: run post-process-forwarder --commit-batch-size 1
-  sentry-cleanup:
-    << : *sentry_defaults
-    image: sentry-cleanup-onpremise-local
-    build:
-      context: ./cron
-      args:
-        BASE_IMAGE: 'sentry-onpremise-local'
-    command: '"0 0 * * * gosu sentry sentry cleanup --days $SENTRY_EVENT_RETENTION_DAYS"'
+  # sentry-cleanup:
+  #   << : *sentry_defaults
+  #   image: sentry-cleanup-onpremise-local
+  #   build:
+  #     context: ./cron
+  #     args:
+  #       BASE_IMAGE: 'sentry-onpremise-local'
+  #   command: '"0 0 * * * gosu sentry sentry cleanup --days $SENTRY_EVENT_RETENTION_DAYS"'
+  # ngrok:
+  #   << : *restart_policy
+  #   ports:
+  #     - '4040:4040/tcp'
+  #   image: 'wernight/ngrok:latest'
+  #   depends_on:
+  #     - nginx
+  #   command: ngrok http sentry_onpremise_nginx_1:80
   nginx:
     << : *restart_policy
     ports:
